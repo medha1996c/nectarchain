@@ -113,6 +113,7 @@ def get_available_cameras_from_db_keys(src):
     return available_cameras
 
 
+# TODO: check actual output type and content
 def get_rundata(src, runid):
     """Get run data to populate plots on the Bokeh displays
 
@@ -121,9 +122,14 @@ def get_rundata(src, runid):
     src : DQMDB
         Object-oriented database defined in nectarchain.dqm.db_utils
         from ZODB and ZEO ClientStorage
+<<<<<<< HEAD
     runid : str
         Identifier for dictionary extracted from the database,
         containing the NectarCAM run number. Example: 'NectarCAMQM_Run6310'
+=======
+    runid : int
+        NectarCAM run number
+>>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
 
     Returns
     -------
@@ -139,6 +145,7 @@ def get_rundata(src, runid):
     return run_data
 
 
+<<<<<<< HEAD
 def make_trigger_timestamps_vs_ids(trigger_events_data, runid=None):
     """Make trigger event timestamps plots
 
@@ -151,10 +158,23 @@ def make_trigger_timestamps_vs_ids(trigger_events_data, runid=None):
         Identifier for dictionary extracted from the database,
         containing the NectarCAM run number. Example: 'NectarCAMQM_Run6310'.
         By default None
+=======
+# TODO: check actual timelines shape
+def make_timelines(source, runid=None):
+    """Make timeline plots for pixel quantities evolving with time
+
+    Parameters
+    ----------
+    source : dict
+        Dictionary returned by `get_rundata()`
+    runid : int, optional
+        NectarCAM run number, by default None
+>>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
 
     Returns
     -------
     dict
+<<<<<<< HEAD
         Nested dictionary containing line plots
         for the trigger event timestamps
     """
@@ -327,6 +347,23 @@ def make_waveforms(waveforms_data, runid=None):
                 upper_bound = np.percentile(pixel_waveforms, UPPER_PERCENTILE, axis=0)
                 y_min = min(
                     y_min, np.min(lower_bound) - np.abs(np.min(lower_bound)) * 0.1
+=======
+        Nested dictionary containing line plots for the timelines
+    """
+
+    timelines = collections.defaultdict(dict)
+    for parentkey in source.keys():
+        # Prepare timeline line plots only for pixel quantities evolving with time
+        if re.match("(?:.*PIXTIMELINE-.*)", parentkey):
+            for childkey in source[parentkey].keys():
+                print(f"Run id {runid} Preparing plot for {parentkey}, {childkey}")
+                timelines[parentkey][childkey] = figure(title=childkey)
+                evts = np.arange(len(source[parentkey][childkey]))
+                timelines[parentkey][childkey].line(
+                    x=evts,
+                    y=source[parentkey][childkey],
+                    line_width=3,
+>>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
                 )
                 y_max = max(
                     y_max, np.max(upper_bound) + np.abs(np.max(upper_bound)) * 0.1
@@ -526,6 +563,7 @@ def make_timelines(timelines_data, runid=None):
     return dict(timelines)
 
 
+<<<<<<< HEAD
 def update_timelines(timelines_data, runid=None):
     """Reset each timeline previously created by `make_timelines`
 
@@ -547,6 +585,34 @@ def update_timelines(timelines_data, runid=None):
 
     # Make new timeline plots
     timelines = make_timelines(timelines_data, runid)
+=======
+# TODO: check consistency of the gridplot
+def update_timelines(data, timelines, runid=None):
+    """Reset each timeline previously created by `make_timelines()`
+
+    Parameters
+    ----------
+    data : dict
+        Dictionary returned by `get_rundata()`
+    timelines : dict
+        Nested dictionary containing line plots created by `make_timelines()`
+    runid : int, optional
+        NectarCAM run number, by default None
+
+    Returns
+    -------
+    bokeh.models.TabPanel
+        Updated TabPanel containing the bokeh layout for the timeline plots
+    """
+
+    # Reset timeline line plots
+    for k in timelines.keys():
+        for kk in timelines[k].keys():
+            timelines[k][kk].line(x=0, y=0)
+
+    # Make new timeline plots
+    timelines = make_timelines(data, runid)
+>>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
 
     list_timelines = [
         timelines[parentkey][childkey]
@@ -559,11 +625,13 @@ def update_timelines(timelines_data, runid=None):
         sizing_mode="scale_width",
     )
 
+    # Recreate TabPanel layout
     tab_timelines = TabPanel(child=layout_timelines, title="Timelines")
 
     return tab_timelines
 
 
+<<<<<<< HEAD
 def make_camera_displays(camera_displays_data, runid):
     """Make camera display plots using `make_camera_display`,
        `make_pixel_val_vs_id` and `make_pixel_vals_histo`
@@ -577,11 +645,26 @@ def make_camera_displays(camera_displays_data, runid):
     runid : str
         Identifier for dictionary extracted from the database,
         containing the NectarCAM run number. Example: 'NectarCAMQM_Run6310'.
+=======
+def make_camera_displays(source, runid):
+    """Make camera display plots using `make_camera_display()`
+
+    Parameters
+    ----------
+    source : dict
+        Dictionary returned by `get_rundata()`
+    runid : int
+        NectarCAM run number
+>>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
 
     Returns
     -------
     dict
+<<<<<<< HEAD
         Nested dictionary containing display plots created by `make_camera_display`
+=======
+        Nested dictionary containing camera display plots
+>>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
     """
 
     displays = collections.defaultdict(dict)
@@ -612,6 +695,7 @@ def make_camera_displays(camera_displays_data, runid):
     return dict(displays)
 
 
+<<<<<<< HEAD
 def update_camera_displays(camera_displays_data, runid=None):
     """Reset each display previously created by `make_camera_displays`
 
@@ -625,6 +709,31 @@ def update_camera_displays(camera_displays_data, runid=None):
         Identifier for dictionary extracted from the database,
         containing the NectarCAM run number. Example: 'NectarCAMQM_Run6310'.
         By default None
+=======
+def update_camera_displays(data, displays, runid=None):
+    """Reset each display previously created by `make_camera_displays()`
+
+    Parameters
+    ----------
+    data : dict
+        Dictionary returned by `get_rundata()`
+    displays : dict
+        Nested dictionary containing display plots created by `make_camera_displays()`
+    runid : int, optional
+        NectarCAM run number, by default None
+
+    Returns
+    -------
+    bokeh.models.TabPanel
+        Updated TabPanel containing the bokeh layout for the display plots
+    """
+
+    ncols = 3
+
+    for k in displays.keys():
+        for kk in displays[k].keys():
+            displays[k][kk].image = np.zeros(shape=constants.N_PIXELS)
+>>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
 
     Returns
     -------
@@ -666,6 +775,7 @@ def update_camera_displays(camera_displays_data, runid=None):
     return tab_camera_displays
 
 
+<<<<<<< HEAD
 def make_pixel_vals_histo(source, parent_key, child_key):
     """Make histograms of pixel values
        to fill the nested dict
@@ -1012,11 +1122,21 @@ def make_camera_display(source, parent_key, child_key):
        created by `make_camera_displays`
        along with the 1D plot of camera pixel values vs pixel id
        and the histograms of pixel values
+=======
+# TODO: understand how to write docs for parent_ and child_ keys
+def make_camera_display(source, parent_key, child_key):
+    """Make camera display plot to fill the nested dict
+       created by `make_camera_displays()`
+>>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
 
     Parameters
     ----------
     source : dict
+<<<<<<< HEAD
         Dictionary returned by `get_rundata`
+=======
+        Dictionary returned by `get_rundata()`
+>>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
     parent_key : str
         Parent key to extract quantity from the dict
     child_key : str
@@ -1024,6 +1144,7 @@ def make_camera_display(source, parent_key, child_key):
 
     Returns
     -------
+<<<<<<< HEAD
     tuple
         Tuple containing:
         - ctapipe.visualization.bokeh.CameraDisplay: CameraDisplay filled with values
@@ -1072,6 +1193,15 @@ def make_camera_display(source, parent_key, child_key):
             min_slider *= 0.95
         image[mask_low_gain if "LOW-GAIN" in parent_key else mask_high_gain] = 0.0
 
+=======
+    ctapipe.visualization.bokeh.CameraDisplay
+        CameraDisplay filled with values for the selected quantity,
+        and displayed with the geometry from ctapipe.instrument.CameraGeometry
+    """
+
+    image = source[parent_key][child_key]
+    image = np.nan_to_num(image, nan=0.0)
+>>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
     display = CameraDisplay(geometry=geom)
     try:
         display.image = image
