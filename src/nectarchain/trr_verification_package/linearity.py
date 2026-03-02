@@ -39,6 +39,13 @@ try:
 except FileNotFoundError as e:
     raise e
 
+logging.basicConfig(
+    format="%(asctime)s %(name)s %(levelname)s %(message)s",
+    level=logging.INFO,
+    handlers=[logging.getLogger("__main__").handlers],
+)
+log = logging.getLogger(__name__)
+
 
 def get_args():
     """Parses command-line arguments for the linearity test script.
@@ -148,6 +155,7 @@ def main():
 
     nevents = args.evts
 
+<<<<<<< HEAD:src/nectarchain/trr_verification_package/linearity.py
     output_dir = os.path.join(
         os.path.abspath(args.output),
         f"trr_camera_{camera}/{Path(__file__).stem}",
@@ -156,10 +164,21 @@ def main():
     log.debug(f"Output directory: {output_dir}")
     temp_output = os.path.abspath(args.temp_output) if args.temp_output else None
     log.debug(f"Temporary output directory: {temp_output}")
+=======
+    output_dir = os.path.abspath(args.output)
+
+    log.info(f"Output directory: {output_dir}")  # Debug print
+    # print(f"Temporary output file: {temp_output}")  # Debug print
+>>>>>>> e0eeacf (Temperature dependent code modifications):src/nectarchain/trr_test_suite/linearity.py
 
     sys.argv = sys.argv[:1]
 
     # runlist = [3441]
+    run_linearity(runlist, transmission, nevents, output_dir, args.temp_output)
+
+
+def run_linearity(runlist, transmission, nevents, output_dir, temp_output_args):
+    temp_output = os.path.abspath(temp_output_args) if temp_output_args else None
 
     charge = np.zeros((len(runlist), 2))
     std = np.zeros((len(runlist), 2))
@@ -434,13 +453,19 @@ def main():
         alpha=0.9,
     )
 
+<<<<<<< HEAD:src/nectarchain/trr_verification_package/linearity.py
     fig_name = "linearity_test"
     plot_path = os.path.join(output_dir, f"{fig_name}.png")
     plt.savefig(plot_path)
 
+=======
+    plt.savefig(os.path.join(output_dir, "linearity_test.png"))
+    """
+>>>>>>> e0eeacf (Temperature dependent code modifications):src/nectarchain/trr_test_suite/linearity.py
     if temp_output:
         with open(os.path.join(args.temp_output, f"plot_{fig_name}.pkl"), "wb") as f:
             pickle.dump(fig, f)
+    """
 
     # charge resolution
     charge_hg = charge[:, 0]
@@ -506,7 +531,11 @@ def main():
     plt.savefig(plot_path)
 
     if temp_output:
+<<<<<<< HEAD:src/nectarchain/trr_verification_package/linearity.py
         with open(os.path.join(args.temp_output, f"plot_{fig_name}.pkl"), "wb") as f:
+=======
+        with open(os.path.join(temp_output_args, "plot2.pkl"), "wb") as f:
+>>>>>>> e0eeacf (Temperature dependent code modifications):src/nectarchain/trr_test_suite/linearity.py
             pickle.dump(fig, f)
     plt.close("all")
 
