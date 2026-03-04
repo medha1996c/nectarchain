@@ -22,7 +22,6 @@ from nectarchain.trr_verification_package.utils import (
 )
 from nectarchain.trr_verification_package.utils import (
     plot_deadtime_and_expo_fit,
-    source_ids_deadtime,
 )
 from nectarchain.utils.constants import ALLOWED_CAMERAS
 
