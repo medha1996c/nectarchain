@@ -59,6 +59,7 @@ def get_labels():
         script_dir, "../trr_verification_package/resources/source_type_labels.json"
     )
 
+figures_output_path = os.environ.get("NECTARCHAIN_FIGURES", "./")
 default_camera = [camera for camera in ALLOWED_CAMERAS if "QM" in camera][0]
 
 
