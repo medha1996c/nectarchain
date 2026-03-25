@@ -16,15 +16,24 @@ from nectarchain.makers.calibration import (
     FlatFieldSPENominalStdNectarCAMCalibrationTool,
     PedestalNectarCAMCalibrationTool,
 )
+<<<<<<< HEAD:src/nectarchain/trr_verification_package/charge_resolution.py
 from nectarchain.trr_verification_package.tools_components import (
     ChargeResolutionTestTool,
 )
 from nectarchain.trr_verification_package.utils import (
+=======
+from nectarchain.trr_test_suite.tools_components import ChargeResolutionTestTool
+from nectarchain.trr_test_suite.utils import (
+    ALLOWED_CAMERAS,
+>>>>>>> f9831be (Adapting charge resolution to have camera and output directory options):src/nectarchain/trr_test_suite/charge_resolution.py
     err_ratio,
     get_gain_run,
     plot_parameters,
 )
+<<<<<<< HEAD:src/nectarchain/trr_verification_package/charge_resolution.py
 from nectarchain.utils.constants import ALLOWED_CAMERAS
+=======
+>>>>>>> f9831be (Adapting charge resolution to have camera and output directory options):src/nectarchain/trr_test_suite/charge_resolution.py
 
 logging.basicConfig(
     format="%(asctime)s %(name)s %(levelname)s %(message)s",
@@ -36,7 +45,8 @@ log = logging.getLogger(__name__)
 try:
     plt.style.use(
         os.path.join(
-            os.path.abspath(os.path.dirname(__file__)), "../utils/plot_style.mpltstyle"
+            os.path.abspath(os.path.dirname(__file__)),
+            "../utils/plot_style_new.mpltstyle",
         )
     )
 except FileNotFoundError as e:
@@ -71,7 +81,7 @@ number of pixels used (default 1000).
 """
     )
     parser.add_argument(
-        # "-r",
+        "-r",
         "--run_file",
         type=str,
         help="Run file path and name",
@@ -98,9 +108,17 @@ number of pixels used (default 1000).
         "-o",
         "--output",
         type=str,
-        help="Output directory. If none, plot will be saved in current directory",
+        help="Output base directory",
         required=False,
-        default="./",
+        default=f"{os.environ.get('NECTARCHAIN_FIGURES', f'/tmp/{os.getpid()}')}",
+    )
+    parser.add_argument(
+        "-c",
+        "--camera",
+        choices=ALLOWED_CAMERAS,
+        default=[camera for camera in ALLOWED_CAMERAS if "QM" in camera][0],
+        help="Process data for a specific NectarCAM camera.",
+        type=str,
     )
 
     parser.add_argument(
@@ -143,16 +161,14 @@ def main():
     parser = get_args()
     args = parser.parse_args()
 
+    df = pd.read_json(args.run_file)
+    temperature = args.temperature
+    nevents = args.evts
     camera = args.camera
-
     output_dir = os.path.join(
         os.path.abspath(args.output),
         f"trr_camera_{camera}/{Path(__file__).stem}",
     )
-    os.makedirs(output_dir, exist_ok=True)
-    log.debug(f"Output directory: {output_dir}")
-    temp_output = os.path.abspath(args.temp_output) if args.temp_output else None
-    log.debug(f"Temporary output directory: {temp_output}")
 
     if not os.path.isfile(args.run_file):
         raise FileNotFoundError(f"Run file not found: {args.run_file}")
@@ -171,6 +187,7 @@ def main():
         ff_v_list=ff_v_list,
         temperature=temperature,
         nevents=nevents,
+        camera=camera,
         output_dir=output_dir,
         temp_output_args=args.temp_output,
     )
@@ -182,6 +199,7 @@ def run_charge_resolution(
     ff_v_list,
     temperature=14,
     nevents=1000,
+    camera="NectarCAMQM",
     output_dir="./",
     temp_output_args=None,
 ):
@@ -224,9 +242,8 @@ def run_charge_resolution(
             pedestal_tool = PedestalNectarCAMCalibrationTool(
                 progress_bar=True,
                 run_number=run,
-                camera=camera,
-                max_events=1000,
-                events_per_slice=max_events,
+                max_events=nevents,
+                events_per_slice=999,
                 log_level=20,
                 overwrite=True,
                 filter_method=None,
@@ -267,10 +284,12 @@ def run_charge_resolution(
                 window_width,
                 type(run),
             )
+            output_file_name = Path(
+                f"{output_dir}/ChargeResolutionTestTool_run{str(run)}.h5"
+            )
             tool = ChargeResolutionTestTool(
                 progress_bar=True,
                 run_number=run,
-                camera=camera,
                 max_events=nevents,
                 method=method,
                 extractor_kwargs={
@@ -279,10 +298,9 @@ def run_charge_resolution(
                 },
                 pedestal_file=pedestal_tool.output_path,
                 overwrite=True,
+                output_path=output_file_name,
             )
-            log.info(f"initialize: {tool.run_number}")
             tool.initialize()
-            log.info(f"initialize2: {tool.run_number}")
             tool.setup()
             tool.start()
             output = tool.finish(gain_file=gain_file_name)
@@ -325,16 +343,9 @@ def run_charge_resolution(
         # ax.grid()
         ax.legend()
         ax.set_ylim(-1, 600)
-
-        fig_name = f"Charge_FF_V_final_cuts_{runlist[0]}_{runlist[len(runlist)-1]}.png"
+        fig_name = f"Charge_FF_V_final_cuts_{runlist[0]}_{runlist[len(runlist)-1]}"
         plot_path = os.path.join(output_dir, f"{fig_name}.png")
         plt.savefig(plot_path)
-
-        if temp_output:
-            with open(
-                os.path.join(args.temp_output, f"plot_{fig_name}.pkl"), "wb"
-            ) as f:
-                pickle.dump(fig, f)
 
         ratio_lghg_nsb.append(ratio_hglg)
 
@@ -460,15 +471,16 @@ def run_charge_resolution(
             ls="",
             marker="o",
             label="NSB = {} MHz".format(NSB[iNSB]),
-            color=color[iNSB],
         )
+        # print(iNSB, mean_charge[iNSB], mean_resolution_nsb[iNSB])
 
     ax.set_xlabel(r"Charge $\overline{Q}$ [p.e.]")
-    ax.set_ylabel(r"Charge resolution $\frac{\sigma_{Q}}{\overline{Q}}$")
-    ax.set_title("T={} degrees".format(temperature))
+    ax.set_ylabel(
+        r"Charge resolution $\langle \frac{\sigma_{Q}}{\overline{Q}} \rangle$"
+    )
+    # ax.set_title("T={} degrees".format(temperature))
     ax.set_xlim(20, 1000)
-    ax.legend()
-
+    ax.legend(fontsize=8)
     fig_name = f"charge_resolution_T{temperature}"
     plot_path = os.path.join(output_dir, f"{fig_name}.png")
     plt.savefig(plot_path)
