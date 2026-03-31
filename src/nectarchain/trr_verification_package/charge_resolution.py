@@ -16,24 +16,17 @@ from nectarchain.makers.calibration import (
     FlatFieldSPENominalStdNectarCAMCalibrationTool,
     PedestalNectarCAMCalibrationTool,
 )
-<<<<<<< HEAD:src/nectarchain/trr_verification_package/charge_resolution.py
-from nectarchain.trr_verification_package.tools_components import (
-    ChargeResolutionTestTool,
-)
-from nectarchain.trr_verification_package.utils import (
-=======
 from nectarchain.trr_test_suite.tools_components import ChargeResolutionTestTool
+
 from nectarchain.trr_test_suite.utils import (
     ALLOWED_CAMERAS,
->>>>>>> f9831be (Adapting charge resolution to have camera and output directory options):src/nectarchain/trr_test_suite/charge_resolution.py
     err_ratio,
     get_gain_run,
     plot_parameters,
 )
-<<<<<<< HEAD:src/nectarchain/trr_verification_package/charge_resolution.py
+
+from nectarchain.trr_test_suite.utils import err_ratio, get_gain_run, plot_parameters
 from nectarchain.utils.constants import ALLOWED_CAMERAS
-=======
->>>>>>> f9831be (Adapting charge resolution to have camera and output directory options):src/nectarchain/trr_test_suite/charge_resolution.py
 
 logging.basicConfig(
     format="%(asctime)s %(name)s %(levelname)s %(message)s",
