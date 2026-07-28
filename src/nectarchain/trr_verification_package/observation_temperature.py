@@ -10,10 +10,10 @@ import pandas as pd
 from lmfit.models import Model
 from scipy import stats
 
-from nectarchain.trr_test_suite.charge_resolution import run_charge_resolution
-from nectarchain.trr_test_suite.deadtime import run_deadtime
-from nectarchain.trr_test_suite.linearity import run_linearity
-from nectarchain.trr_test_suite.utils import linear_fit_function
+from nectarchain.trr_verification_package.charge_resolution import run_charge_resolution
+from nectarchain.trr_verification_package.deadtime import run_deadtime
+from nectarchain.trr_verification_package.linearity import run_linearity
+from nectarchain.trr_verification_package.utils import linear_fit_function
 from nectarchain.utils.constants import ALLOWED_CAMERAS
 
 logging.basicConfig(
@@ -58,8 +58,7 @@ If the data are not in `$NECTARCAMDATA`, the files will be downloaded through DI
 For the purposes of testing this script, default data are from the runs used for this
 test in the TRR document.
 
-You can optionally specify the number of events to be processed (default 500) and the
-number of pixels used (default 1000).
+You can optionally specify the number of events to be processed (default 500).
 """
     )
     parser.add_argument(
@@ -530,7 +529,10 @@ class ObservationTemperaturePipeline:
         ax2.set_xlabel("Temperature ($deg C$)")
         ax2.legend(fontsize=8)
         ax2.set_xlim(-7, 28)
-        plt.savefig("Linearity_params_temp.png")
+
+        fig_name = "Linearity_params_temp"
+        plot_path = os.path.join(self.output_dir, f"{fig_name}.png")
+        plt.savefig(plot_path)
 
         # PLOT2 : HG/LG as function of different transmissions
         slope_hglg = []
@@ -589,7 +591,9 @@ class ObservationTemperaturePipeline:
         plt.xlim(-10, 30)
         plt.ylim(-1, 20)
 
-        plt.savefig("HGLGRatio_Linearity_temp.png")
+        fig_name = "HGLGRatio_Linearity_temp"
+        plot_path = os.path.join(self.output_dir, f"{fig_name}.png")
+        plt.savefig(plot_path)
 
         plt.close("all")
 
