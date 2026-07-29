@@ -16,16 +16,14 @@ from nectarchain.makers.calibration import (
     FlatFieldSPENominalStdNectarCAMCalibrationTool,
     PedestalNectarCAMCalibrationTool,
 )
-from nectarchain.trr_test_suite.tools_components import ChargeResolutionTestTool
-
-from nectarchain.trr_test_suite.utils import (
-    ALLOWED_CAMERAS,
+from nectarchain.trr_verification_package.tools_components import (
+    ChargeResolutionTestTool,
+)
+from nectarchain.trr_verification_package.utils import (
     err_ratio,
     get_gain_run,
     plot_parameters,
 )
-
-from nectarchain.trr_test_suite.utils import err_ratio, get_gain_run, plot_parameters
 from nectarchain.utils.constants import ALLOWED_CAMERAS
 
 logging.basicConfig(
@@ -169,7 +167,6 @@ def main():
     # Drop arguments from the script after they are parsed, for the GUI to work properly
     sys.argv = sys.argv[:1]
 
-   
     NSB = df["NSB"].values
     runs_list = df["runs"].tolist()
     ff_v_list = df["ff_v"].tolist()
@@ -215,8 +212,6 @@ def run_charge_resolution(
     window_width = 16
     max_events = 5000
     method = "LocalPeakWindowSum"
-
-    pkl_index = 0
 
     for iNSB in range(len(NSB)):
         runlist = runs_list[iNSB]
@@ -428,7 +423,7 @@ def run_charge_resolution(
     plt.savefig(plot_path)
 
     if temp_output:
-        with open(os.path.join(args.temp_output, f"plot_{fig_name}.pkl"), "wb") as f:
+        with open(os.path.join(temp_output, f"plot_{fig_name}.pkl"), "wb") as f:
             pickle.dump(fig, f)
 
     charge_plot = np.linspace(20, 1000)
@@ -479,7 +474,7 @@ def run_charge_resolution(
     plt.savefig(plot_path)
 
     if temp_output:
-        with open(os.path.join(args.temp_output, f"plot_{fig_name}.pkl"), "wb") as f:
+        with open(os.path.join(temp_output, f"plot_{fig_name}.pkl"), "wb") as f:
             pickle.dump(fig, f)
 
     plt.close("all")
