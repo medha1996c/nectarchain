@@ -160,6 +160,8 @@ def main():
         os.path.abspath(args.output),
         f"trr_camera_{camera}/{Path(__file__).stem}",
     )
+    os.makedirs(output_dir, exist_ok=True)
+    log.debug(f"Output directory: {output_dir}")
 
     if not os.path.isfile(args.run_file):
         raise FileNotFoundError(f"Run file not found: {args.run_file}")

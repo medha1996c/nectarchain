@@ -3,6 +3,7 @@ import gc
 import logging
 import os
 import sys
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -949,8 +950,14 @@ def main():
 
     run_module = args.run_module
     max_events = args.evts
-    output_dir = args.output
     camera = args.camera
+    output_dir = os.path.join(
+        os.path.abspath(args.output),
+        f"trr_camera_{camera}/{Path(__file__).stem}",
+    )
+    os.makedirs(output_dir, exist_ok=True)
+    log.debug(f"Output directory: {output_dir}")
+
     temp_output = args.temp_output
 
     sys.argv = sys.argv[:1]
