@@ -206,9 +206,9 @@ def main():
     1. Parses the command-line arguments using the `get_args()` function, which sets
     up the argument parser and handles the input parameters.
     2. Iterates through the specified run list, processing each run using the
-    `LinearityTestTool` class. This tool returns the "ChargeComp" in tool_components
-    and computes average charge.
-    3. Plots : avg p.e. over events and over the camera as a function of laser
+    `LaserIntensityCalibrationTool` class. This tool returns the "ChargeComp" in
+    tool_components and computes average charge.
+    3. Plots : average p.e. over events and over the camera as a function of laser
     intensity.
 
     """
@@ -233,6 +233,7 @@ def main():
     log.debug(f"Output directory: {output_dir}")
     log.debug(f"Temporary output file: {temp_output}")
 
+    # Drop arguments from the script after they are parsed, for the GUI to work properly
     sys.argv = sys.argv[:1]
 
     charge = np.zeros((len(runlist), 2))
@@ -244,7 +245,9 @@ def main():
 
     for index, run in enumerate(runlist):
         log.info(f"Processing run {run}")
-        output_file_name = Path(f"{output_dir}/NSBRateTestTool_run{str(run)}.h5")
+        output_file_name = Path(
+            f"{output_dir}/LaserIntensityCalibrationTool_" f"run{str(run)}.h5"
+        )
         pedestal_tool = PedestalNectarCAMCalibrationTool(
             progress_bar=True,
             run_number=run,
@@ -302,8 +305,8 @@ def main():
     ax.set_ylabel("Average charge (p.e.)")
     ax.legend()
     ax.grid()
-    # plt.ylim(pow(10,-1),5.*pow(10,4))
-    fig_name = f"Laser_calibration_{runlist[0]}_{runlist[len(runlist)-1]}"
+
+    fig_name = f"laser_calibration_{runlist[0]}_{runlist[len(runlist)-1]}"
     plot_path = os.path.join(output_dir, f"{fig_name}.png")
     fig.savefig(plot_path)
 
