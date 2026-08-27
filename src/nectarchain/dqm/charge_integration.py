@@ -48,6 +48,8 @@ class ChargeIntegrationHighLowGain(DQMSummary):
         self.image_ped_stats = None
         self.ped_all_stats = None
         self.ped_ped_stats = None
+        self.peakpos_all_stats = None
+        self.peakpos_ped_stats = None
         self.ChargeInt_Results_Dict = {}
         self.ChargeInt_Figures_Dict = {}
         self.ChargeInt_Figures_Names_Dict = {}
@@ -103,6 +105,7 @@ class ChargeIntegrationHighLowGain(DQMSummary):
             broken_pixels_hg,
             broken_pixels_lg,
         ) = ArrayDataComponent._compute_broken_pixels_event(evt, self.pixels)
+        self.all_pixel_ids = np.arange(0, constants.N_PIXELS, step=1)
 
         if self.k == 0:
             self.pixelBAD = broken_pixels_hg
@@ -118,6 +121,9 @@ class ChargeIntegrationHighLowGain(DQMSummary):
             # (1855,60), or 3D (2, 1855, 60) for 2-gain channels or
             # (1, 1855, 60) for single-gain channel
             waveform = evt.r1.tel[self.tel_id].waveform
+
+        missing_or_bad_pixels = np.setdiff1d(self.all_pixel_ids, self.pixels)
+
         waveform = waveform[self.pixels]
 
         ped = np.mean(waveform[:, 20])
@@ -146,6 +152,14 @@ class ChargeIntegrationHighLowGain(DQMSummary):
 
         image = output[0]
         peakpos = output[1]
+
+        if len(missing_or_bad_pixels) > 0:
+            # Sort the indices in ascending order
+            sorted_indices = np.sort(missing_or_bad_pixels)
+            # Insert zeros at all specified indices in one call
+            image = np.insert(image, sorted_indices, 0)
+            peakpos = np.insert(peakpos, sorted_indices, 0)
+
         if np.any(np.isnan(image) | np.isinf(image)):
             image[np.isnan(image) | np.isinf(image)] = np.zeros_like(
                 image[np.isnan(image) | np.isinf(image)]
@@ -174,8 +188,19 @@ class ChargeIntegrationHighLowGain(DQMSummary):
 
     def finish_run(self):
         self.peakpos_all = np.array(self.peakpos_all, dtype=float)
+        if self.peakpos_all.size:
+            self.peakpos_all_stats = {
+                "average": np.mean(self.peakpos_all, axis=0),
+                "std": np.std(self.peakpos_all, axis=0),
+            }
+
         if self.counter_ped > 0:
             self.peakpos_ped = np.array(self.peakpos_ped, dtype=float)
+            if self.peakpos_ped.size:
+                self.peakpos_ped_stats = {
+                    "average": np.mean(self.peakpos_ped, axis=0),
+                    "std": np.std(self.peakpos_ped, axis=0),
+                }
 
         # rms, percentile, mean deviation, median, mean,
         self.image_all = np.array(self.image_all, dtype=float)
@@ -230,6 +255,11 @@ class ChargeIntegrationHighLowGain(DQMSummary):
                     f"PED-INTEGRATION-IMAGE-ALL-{k.upper()}-{self.gain_c.upper()}-GAIN"
                 ] = v
 
+            for k, v in self.peakpos_all_stats.items():
+                self.ChargeInt_Results_Dict[
+                    f"PEAKPOS-ALL-{k.upper()}-{self.gain_c.upper()}-GAIN"
+                ] = v
+
         if self.counter_ped > 0:
             for k, v in self.image_ped_stats.items():
                 self.ChargeInt_Results_Dict[
@@ -242,6 +272,11 @@ class ChargeIntegrationHighLowGain(DQMSummary):
             for k, v in self.ped_ped_stats.items():
                 self.ChargeInt_Results_Dict[
                     f"PED-INTEGRATION-PED-ALL-{k.upper()}-{self.gain_c.upper()}-GAIN"
+                ] = v
+
+            for k, v in self.peakpos_ped_stats.items():
+                self.ChargeInt_Results_Dict[
+                    f"PEAKPOS-PED-ALL-{k.upper()}-{self.gain_c.upper()}-GAIN"
                 ] = v
 
         return self.ChargeInt_Results_Dict
@@ -294,6 +329,22 @@ class ChargeIntegrationHighLowGain(DQMSummary):
             key = f"CHARGE-INTEGRATION-IMAGE-ALL-RMS-{self.gain_c.upper()}-GAIN"
             self._plot_camera_image(image, title, text, filename, key, fig_path)
 
+            # Peak position MEAN plot
+            image = self.peakpos_all_stats["average"]
+            text = f"{self.gain_c} gain peak time (s)"
+            title = f"Peak time position Mean {self.gain_c} Gain (ALL)"
+            filename = name + f"_PeakPos_Mean_{self.gain_c}Gain_All.png"
+            key = f"PEAKPOS-ALL-AVERAGE-{self.gain_c.upper()}-GAIN"
+            self._plot_camera_image(image, title, text, filename, key, fig_path)
+
+            # Peak position STD plot
+            image = self.peakpos_all_stats["std"]
+            text = f"{self.gain_c} gain peak time (s)"
+            title = f"Peak time position Std {self.gain_c} Gain (ALL)"
+            filename = name + f"_PeakPos_Std_{self.gain_c}Gain_All.png"
+            key = f"PEAKPOS-ALL-STD-{self.gain_c.upper()}-GAIN"
+            self._plot_camera_image(image, title, text, filename, key, fig_path)
+
         if self.counter_ped > 0:
             image = self.image_ped_stats["average"]
             text = f"{self.gain_c} gain integrated charge (DC)"
@@ -323,6 +374,20 @@ class ChargeIntegrationHighLowGain(DQMSummary):
             key = f"CHARGE-INTEGRATION-IMAGE-PED-RMS-{self.gain_c.upper()}-GAIN"
             self._plot_camera_image(image, title, text, filename, key, fig_path)
 
+            image = self.peakpos_ped_stats["average"]
+            text = f"{self.gain_c} gain peak time (s)"
+            title = f"Peak time position Mean {self.gain_c} Gain (ALL)"
+            filename = name + f"_PeakPos_Mean_{self.gain_c}Gain_All.png"
+            key = f"PEAKPOS-PED-ALL-AVERAGE-{self.gain_c.upper()}-GAIN"
+            self._plot_camera_image(image, title, text, filename, key, fig_path)
+
+            image = self.peakpos_ped_stats["std"]
+            text = f"{self.gain_c} gain peak time (s)"
+            title = f"Peak time position Std {self.gain_c} Gain (ALL)"
+            filename = name + f"_PeakPos_Std_{self.gain_c}Gain_All.png"
+            key = f"PEAKPOS-PED-ALL-STD-{self.gain_c.upper()}-GAIN"
+            self._plot_camera_image(image, title, text, filename, key, fig_path)
+
         indexes_bad_pixels = np.where(self.pixelBADplot[0] == True)[0]
 
         # Charge integration SPECTRUM
@@ -342,9 +407,7 @@ class ChargeIntegrationHighLowGain(DQMSummary):
                     )
             plt.hist(
                 np.mean(
-                    self.image_all[
-                        :, ~np.isin(np.arange(len(self.pixels)), indexes_bad_pixels)
-                    ],
+                    self.image_all[:, ~np.isin(self.all_pixel_ids, indexes_bad_pixels)],
                     axis=1,
                 ),
                 100,
@@ -386,9 +449,7 @@ class ChargeIntegrationHighLowGain(DQMSummary):
                     )
             plt.hist(
                 np.mean(
-                    self.image_ped[
-                        :, ~np.isin(np.arange(len(self.pixels)), indexes_bad_pixels)
-                    ],
+                    self.image_ped[:, ~np.isin(self.all_pixel_ids, indexes_bad_pixels)],
                     axis=1,
                 ),
                 100,

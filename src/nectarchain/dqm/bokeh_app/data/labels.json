@@ -9,8 +9,9 @@
         "CAMERA-BADPIXTIMELINE-PED-HIGH-GAIN": "Fraction of bad pixels",
         "CAMERA-BADPIXTIMELINE-PED-LOW-GAIN": "Fraction of bad pixels",
         "CAMERA-BADPIXTIMELINE-PHY-HIGH-GAIN": "Fraction of bad pixels",
-        "CAMERA-BADPIXTIMELINE-PHY-LOW-GAIN": "Fraction of bad pixels"
-    }, 
+        "CAMERA-BADPIXTIMELINE-PHY-LOW-GAIN": "Fraction of bad pixels",
+        "CAMERA-TEMPERATURE-TREND": "$$^{\\circ}$$C"
+    },
     "y_axis_labels_trig_timestamps": {
         "TRIGGER-EVENTS-ALL": "Timestamps [UTC]",
         "TRIGGER-EVENTS-PHY": "Timestamps [UTC]",
@@ -44,7 +45,8 @@
         "CHARGE-INTEGRATION-IMAGE-ALL-RMS-HIGH-GAIN": "ADC counts",
         "CHARGE-INTEGRATION-IMAGE-ALL-RMS-LOW-GAIN": "ADC counts",
         "CHARGE-INTEGRATION-IMAGE-ALL-STD-HIGH-GAIN": "ADC counts",
-        "CHARGE-INTEGRATION-IMAGE-ALL-STD-LOW-GAIN": "ADC counts"
+        "CHARGE-INTEGRATION-IMAGE-ALL-STD-LOW-GAIN": "ADC counts",
+        "CAMERA-PING-PONG-CHANGES": "# of ping pong changes"
     },
     "section_titles_camera_display": {
         "TEMPERATURE": "Camera Temperature",

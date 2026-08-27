@@ -122,14 +122,9 @@ def get_rundata(src, runid):
     src : DQMDB
         Object-oriented database defined in nectarchain.dqm.db_utils
         from ZODB and ZEO ClientStorage
-<<<<<<< HEAD
     runid : str
         Identifier for dictionary extracted from the database,
         containing the NectarCAM run number. Example: 'NectarCAMQM_Run6310'
-=======
-    runid : int
-        NectarCAM run number
->>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
 
     Returns
     -------
@@ -145,7 +140,6 @@ def get_rundata(src, runid):
     return run_data
 
 
-<<<<<<< HEAD
 def make_trigger_timestamps_vs_ids(trigger_events_data, runid=None):
     """Make trigger event timestamps plots
 
@@ -158,23 +152,10 @@ def make_trigger_timestamps_vs_ids(trigger_events_data, runid=None):
         Identifier for dictionary extracted from the database,
         containing the NectarCAM run number. Example: 'NectarCAMQM_Run6310'.
         By default None
-=======
-# TODO: check actual timelines shape
-def make_timelines(source, runid=None):
-    """Make timeline plots for pixel quantities evolving with time
-
-    Parameters
-    ----------
-    source : dict
-        Dictionary returned by `get_rundata()`
-    runid : int, optional
-        NectarCAM run number, by default None
->>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
 
     Returns
     -------
     dict
-<<<<<<< HEAD
         Nested dictionary containing line plots
         for the trigger event timestamps
     """
@@ -347,23 +328,6 @@ def make_waveforms(waveforms_data, runid=None):
                 upper_bound = np.percentile(pixel_waveforms, UPPER_PERCENTILE, axis=0)
                 y_min = min(
                     y_min, np.min(lower_bound) - np.abs(np.min(lower_bound)) * 0.1
-=======
-        Nested dictionary containing line plots for the timelines
-    """
-
-    timelines = collections.defaultdict(dict)
-    for parentkey in source.keys():
-        # Prepare timeline line plots only for pixel quantities evolving with time
-        if re.match("(?:.*PIXTIMELINE-.*)", parentkey):
-            for childkey in source[parentkey].keys():
-                print(f"Run id {runid} Preparing plot for {parentkey}, {childkey}")
-                timelines[parentkey][childkey] = figure(title=childkey)
-                evts = np.arange(len(source[parentkey][childkey]))
-                timelines[parentkey][childkey].line(
-                    x=evts,
-                    y=source[parentkey][childkey],
-                    line_width=3,
->>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
                 )
                 y_max = max(
                     y_max, np.max(upper_bound) + np.abs(np.max(upper_bound)) * 0.1
@@ -529,21 +493,54 @@ def make_timelines(timelines_data, runid=None):
         # parent_data is the dict for this parentkey
         for childkey, child_data in parent_data.items():
             logger.info(f"Run id {runid}, preparing plot for {parentkey}, {childkey}")
-            timelines[parentkey][childkey] = figure(title=childkey)
-            evts = np.arange(len(child_data))
-            timelines[parentkey][childkey] = figure(
-                title=childkey,
-                x_range=(0, np.max(evts) + 50),
-                y_range=(0, 1),
-                # A fraction is plotted:
-                # y-range values are between 0 and 1 because
-            )
-            timelines[parentkey][childkey].line(
-                x=evts,
-                y=child_data,
-                line_width=3,
-            )
-        timelines[parentkey][childkey].xaxis.axis_label = "Event number"
+            if "CAMERA-TEMPERATURE-TREND" not in childkey:
+                timelines[parentkey][childkey] = figure(title=childkey)
+                evts = np.arange(len(child_data))
+                timelines[parentkey][childkey] = figure(
+                    title=childkey,
+                    x_range=(0, np.max(evts) + 50),
+                    y_range=(0, 1),
+                    # A fraction is plotted:
+                    # y-range values are between 0 and 1 because
+                )
+                timelines[parentkey][childkey].line(
+                    x=evts,
+                    y=child_data,
+                    line_width=3,
+                )
+                timelines[parentkey][childkey].xaxis.axis_label = "Event number"
+            else:
+                timelines[parentkey][childkey] = figure(title=childkey)
+                samples = np.arange(child_data.shape[1]) + 1
+                # shape[1] is the number of samples
+                # shape[0] is the number of drawers
+                # TODO: this samples shall be extracted from the child_data
+                # once the timestamps are exported by the DQM
+                # (see isse #372 on nectarchain)
+                timelines[parentkey][childkey] = figure(
+                    title=childkey,
+                    x_range=(samples.min(), samples.max()),
+                    y_range=(np.min(child_data) - 1, np.max(child_data) + 1),
+                )
+                for nd in range(child_data.shape[0]):  # loop over drawers
+                    # TODO: this is part of the code that
+                    # could be used if we manage to compile the HoverTool
+                    # via `compile_hover_tool_val_vs_id_or_sample`
+                    # for trend data
+                    # data_source = ColumnDataSource(
+                    #     data=dict(
+                    #         drawer_id=nd,
+                    #         sample=samples,
+                    #         value=child_data[nd]
+                    # ))
+                    timelines[parentkey][childkey].line(
+                        x=samples,
+                        y=child_data[nd],
+                        line_width=1,
+                        alpha=0.7,
+                    )
+                timelines[parentkey][childkey].xaxis.axis_label = "Sample number"
+
         try:
             timelines[parentkey][childkey].yaxis.axis_label = y_axis_labels[parentkey]
         except ValueError:
@@ -563,7 +560,6 @@ def make_timelines(timelines_data, runid=None):
     return dict(timelines)
 
 
-<<<<<<< HEAD
 def update_timelines(timelines_data, runid=None):
     """Reset each timeline previously created by `make_timelines`
 
@@ -585,34 +581,6 @@ def update_timelines(timelines_data, runid=None):
 
     # Make new timeline plots
     timelines = make_timelines(timelines_data, runid)
-=======
-# TODO: check consistency of the gridplot
-def update_timelines(data, timelines, runid=None):
-    """Reset each timeline previously created by `make_timelines()`
-
-    Parameters
-    ----------
-    data : dict
-        Dictionary returned by `get_rundata()`
-    timelines : dict
-        Nested dictionary containing line plots created by `make_timelines()`
-    runid : int, optional
-        NectarCAM run number, by default None
-
-    Returns
-    -------
-    bokeh.models.TabPanel
-        Updated TabPanel containing the bokeh layout for the timeline plots
-    """
-
-    # Reset timeline line plots
-    for k in timelines.keys():
-        for kk in timelines[k].keys():
-            timelines[k][kk].line(x=0, y=0)
-
-    # Make new timeline plots
-    timelines = make_timelines(data, runid)
->>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
 
     list_timelines = [
         timelines[parentkey][childkey]
@@ -631,8 +599,7 @@ def update_timelines(data, timelines, runid=None):
     return tab_timelines
 
 
-<<<<<<< HEAD
-def make_camera_displays(camera_displays_data, runid):
+def make_camera_displays(camera_displays_data, runid, waveforms_data=None):
     """Make camera display plots using `make_camera_display`,
        `make_pixel_val_vs_id` and `make_pixel_vals_histo`
 
@@ -645,26 +612,15 @@ def make_camera_displays(camera_displays_data, runid):
     runid : str
         Identifier for dictionary extracted from the database,
         containing the NectarCAM run number. Example: 'NectarCAMQM_Run6310'.
-=======
-def make_camera_displays(source, runid):
-    """Make camera display plots using `make_camera_display()`
-
-    Parameters
-    ----------
-    source : dict
-        Dictionary returned by `get_rundata()`
-    runid : int
-        NectarCAM run number
->>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
+    waveforms_data : dict, optional
+        Dictionary containing categorized waveform data with 'average' and 'all' keys.
+        Used to display individual pixel waveforms when a pixel is tapped.
+        By default None
 
     Returns
     -------
     dict
-<<<<<<< HEAD
         Nested dictionary containing display plots created by `make_camera_display`
-=======
-        Nested dictionary containing camera display plots
->>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
     """
 
     displays = collections.defaultdict(dict)
@@ -672,11 +628,14 @@ def make_camera_displays(source, runid):
         for childkey in parent_data.keys():
             logger.info(f"Run id {runid}, preparing plot for {parentkey}, {childkey}")
             camera_display, range_slider = make_camera_display(
-                camera_displays_data, parent_key=parentkey, child_key=childkey
+                camera_displays_data,
+                parent_key=parentkey,
+                child_key=childkey,
+                waveforms_data=waveforms_data,
             )
             displays_to_show = [camera_display]
 
-            if "BADPIX" not in parentkey:
+            if "BADPIX" not in parentkey and "PING-PONG" not in parentkey:
                 if range_slider is not None:
                     displays_to_show.append(range_slider)
                 camera_pixel_val_vs_id = make_pixel_val_vs_id(
@@ -695,8 +654,7 @@ def make_camera_displays(source, runid):
     return dict(displays)
 
 
-<<<<<<< HEAD
-def update_camera_displays(camera_displays_data, runid=None):
+def update_camera_displays(camera_displays_data, runid=None, waveforms_data=None):
     """Reset each display previously created by `make_camera_displays`
 
     Parameters
@@ -709,31 +667,10 @@ def update_camera_displays(camera_displays_data, runid=None):
         Identifier for dictionary extracted from the database,
         containing the NectarCAM run number. Example: 'NectarCAMQM_Run6310'.
         By default None
-=======
-def update_camera_displays(data, displays, runid=None):
-    """Reset each display previously created by `make_camera_displays()`
-
-    Parameters
-    ----------
-    data : dict
-        Dictionary returned by `get_rundata()`
-    displays : dict
-        Nested dictionary containing display plots created by `make_camera_displays()`
-    runid : int, optional
-        NectarCAM run number, by default None
-
-    Returns
-    -------
-    bokeh.models.TabPanel
-        Updated TabPanel containing the bokeh layout for the display plots
-    """
-
-    ncols = 3
-
-    for k in displays.keys():
-        for kk in displays[k].keys():
-            displays[k][kk].image = np.zeros(shape=constants.N_PIXELS)
->>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
+    waveforms_data : dict, optional
+        Dictionary containing categorized waveform data with 'average' and 'all' keys.
+        Used to display individual pixel waveforms when a pixel is tapped.
+        By default None
 
     Returns
     -------
@@ -742,7 +679,9 @@ def update_camera_displays(data, displays, runid=None):
     """
 
     # Make new camera display plots
-    displays = make_camera_displays(camera_displays_data, runid)
+    displays = make_camera_displays(
+        camera_displays_data, runid, waveforms_data=waveforms_data
+    )
 
     camera_displays = [
         (
@@ -754,10 +693,14 @@ def update_camera_displays(data, displays, runid=None):
                         displays[parentkey][childkey][2],
                         displays[parentkey][childkey][3],
                     ),
+                    displays[parentkey][childkey][0].selected_pixel_waveform,
                 ]
             )
             if len(displays[parentkey][childkey]) == 4
-            else displays[parentkey][childkey][0].figure
+            else column(
+                displays[parentkey][childkey][0].figure,
+                displays[parentkey][childkey][0].selected_pixel_waveform,
+            )
         )
         for parentkey in displays.keys()
         for childkey in displays[parentkey].keys()
@@ -775,8 +718,7 @@ def update_camera_displays(data, displays, runid=None):
     return tab_camera_displays
 
 
-<<<<<<< HEAD
-def make_pixel_vals_histo(source, parent_key, child_key):
+def make_pixel_vals_histo(camera_displays_data, parent_key, child_key):
     """Make histograms of pixel values
        to fill the nested dict
        created by `make_camera_displays`
@@ -785,8 +727,10 @@ def make_pixel_vals_histo(source, parent_key, child_key):
 
     Parameters
     ----------
-    source : dict
-        Dictionary returned by `get_rundata`
+    camera_displays_data : dict
+        Dictionary containing camera display data extracted from source.
+        Each value is a dict with child keys containing 2D image arrays.
+        This should also include BADPIX data which is needed for masking.
     parent_key : str
         Parent key to extract quantity from the dict
     child_key : str
@@ -798,18 +742,14 @@ def make_pixel_vals_histo(source, parent_key, child_key):
         figure containing the histogram of pixel values
     """
 
-    image = np.nan_to_num(source[parent_key][child_key], nan=0.0)
+    image = np.nan_to_num(camera_displays_data[parent_key][child_key], nan=0.0)
 
-    if "BADPIX" in parent_key:
-        image = set_bad_pixels_cap_value(image)
-        data_for_hist = image
-    else:
-        mask_high_gain, mask_low_gain = get_bad_pixels_position(
-            source=source, image_shape=image.shape
-        )
-        data_for_hist = image[
-            ~mask_low_gain if "LOW-GAIN" in parent_key else ~mask_high_gain
-        ]
+    mask_high_gain, mask_low_gain = get_bad_pixels_position(
+        camera_displays_data=camera_displays_data, image_shape=image.shape
+    )
+    data_for_hist = image[
+        ~mask_low_gain if "LOW-GAIN" in parent_key else ~mask_high_gain
+    ]
 
     # Use adaptive binning on full data to include outliers
     hist, bins = np.histogram(data_for_hist, bins="fd")
@@ -873,14 +813,17 @@ def make_pixel_vals_histo(source, parent_key, child_key):
     return histo_values
 
 
-def compile_hover_tool_val_vs_id(pixel_data, figure):
+def compile_hover_tool_val_vs_id_or_sample(figure, pixel_data=None, trend_data=None):
     """Compile the HoverTool for the
-       input scatter figure with additional information
+       input scatter or line figure with additional information
 
     Parameters
     ----------
-    pixel_data : bokeh.plotting.figure.scatter
+    pixel_data : bokeh.plotting.figure.scatter, optional
         Scatter plot defined and already filled
+        in the corresponding function
+    trend_data : bokeh.plotting.figure.line, optional
+        Line plot defined and already filled
         in the corresponding function
     figure : bokeh.plotting.figure
         Figure object to add the HoverTool to
@@ -891,19 +834,36 @@ def compile_hover_tool_val_vs_id(pixel_data, figure):
         Figure object with the HoverTool added
     """
 
-    figure.add_tools(
-        HoverTool(
-            tooltips=[("(pix_id, value)", "(@pix_id, @value)")],
-            mode="mouse",
-            point_policy="snap_to_data",
-            renderers=[pixel_data],
+    if pixel_data is not None:
+        figure.add_tools(
+            HoverTool(
+                tooltips=[("(pix_id, value)", "(@pix_id, @value)")],
+                mode="mouse",
+                point_policy="snap_to_data",
+                renderers=[pixel_data],
+            )
         )
-    )
+    elif trend_data is not None:
+        # TODO: this clause is not used yet, but
+        # could be used if we manage to compile this HoverTool
+        # for trend data in make_timelines
+        figure.add_tools(
+            HoverTool(
+                tooltips=[
+                    ("drawer_id", "@drawer_id"),
+                    ("sample", "$sample"),
+                    ("value", "$value"),
+                ],
+                mode="mouse",
+                point_policy="snap_to_data",
+                renderers=[trend_data],
+            )
+        )
 
     return figure
 
 
-def make_pixel_val_vs_id(source, parent_key, child_key):
+def make_pixel_val_vs_id(camera_displays_data, parent_key, child_key):
     """Make 1D plot of camera pixel values vs pixel id
        to fill the nested dict
        created by `make_camera_displays`
@@ -911,8 +871,10 @@ def make_pixel_val_vs_id(source, parent_key, child_key):
 
     Parameters
     ----------
-    source : dict
-        Dictionary returned by `get_rundata`
+    camera_displays_data : dict
+        Dictionary containing camera display data extracted from source.
+        Each value is a dict with child keys containing 2D image arrays.
+        This should also include BADPIX data which is needed for masking.
     parent_key : str
         Parent key to extract quantity from the dict
     child_key : str
@@ -924,26 +886,18 @@ def make_pixel_val_vs_id(source, parent_key, child_key):
         figure containing the 1D plot of camera pixel values vs pixel id
     """
 
-    image = np.nan_to_num(source[parent_key][child_key], nan=0.0)
-    if "BADPIX" in parent_key:
-        image = set_bad_pixels_cap_value(image)
-        min_val, max_val = 0.0, 1.0
-    else:
-        mask_high_gain, mask_low_gain = get_bad_pixels_position(
-            source=source, image_shape=image.shape
-        )
-        min_val = (
-            np.min(
-                image[~mask_low_gain if "LOW-GAIN" in parent_key else ~mask_high_gain]
-            )
-            * 0.99
-        )
-        max_val = (
-            np.max(
-                image[~mask_low_gain if "LOW-GAIN" in parent_key else ~mask_high_gain]
-            )
-            * 1.01
-        )
+    image = np.nan_to_num(camera_displays_data[parent_key][child_key], nan=0.0)
+    mask_high_gain, mask_low_gain = get_bad_pixels_position(
+        camera_displays_data=camera_displays_data, image_shape=image.shape
+    )
+    min_val = (
+        np.min(image[~mask_low_gain if "LOW-GAIN" in parent_key else ~mask_high_gain])
+        * 0.99
+    )
+    max_val = (
+        np.max(image[~mask_low_gain if "LOW-GAIN" in parent_key else ~mask_high_gain])
+        * 1.01
+    )
 
     with open(labels_path, "r", encoding="utf-8") as file:
         colorbar_labels = json.load(file)["colorbar_labels_camera_display"]
@@ -980,14 +934,14 @@ def make_pixel_val_vs_id(source, parent_key, child_key):
     scatter_value_vs_id.xaxis.axis_label_text_font_style = "normal"
     scatter_value_vs_id.yaxis.axis_label_text_font_style = "normal"
 
-    scatter_value_vs_id = compile_hover_tool_val_vs_id(
-        pixel_data=pixel_data, figure=scatter_value_vs_id
+    scatter_value_vs_id = compile_hover_tool_val_vs_id_or_sample(
+        figure=scatter_value_vs_id, pixel_data=pixel_data
     )
 
     return scatter_value_vs_id
 
 
-def define_dymanic_color_range(
+def define_dynamic_color_range(
     parent_key, display, min_max_slider, min_max_colorbar, color_bar
 ):
     """Define dynamic color range for the camera displays using a RangeSlider widget
@@ -1009,10 +963,11 @@ def define_dymanic_color_range(
     Returns
     -------
     bokeh.models.RangeSlider or None
-        RangeSlider widget for dynamic color range control (None for BADPIX displays)
+        RangeSlider widget for dynamic color range control
+        (None for BADPIX and PING-PONG displays)
     """
 
-    if "BADPIX" not in parent_key:
+    if "BADPIX" not in parent_key and "PING-PONG" not in parent_key:
         min_slider, max_slider = min_max_slider
         min_colorbar, max_colorbar = min_max_colorbar
 
@@ -1115,36 +1070,174 @@ def compile_hover_tool(display, camgeom):
     return display
 
 
+class CameraDisplayNectarCAM(CameraDisplay):
+    """Overrides the pixel picker callback to customize handling"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.colorbar_label = ""
+        self.figure_title = ""
+        self.selected_pixel_waveform = row(sizing_mode="scale_width")
+        self.camera_displays_data = None
+        self.parent_key = None
+        self.child_key = None
+        self.waveforms_data = None
+
+    def pixel_picker_callback(self, attr, old, new):
+        """Callback for when pixels are selected
+
+        Parameters
+        ----------
+        attr : str
+            Attribute name (always 'indices')
+        old : list
+            Previously selected pixel indices
+        new : list
+            Currently selected pixel indices
+        """
+        with open(labels_path, "r", encoding="utf-8") as file:
+            y_axis_labels = json.load(file)["y_axis_labels_waveforms"]
+
+        for pix_id in new:
+            logger.info(
+                f"{self.figure_title} - {pix_id=} has value"
+                + f" {self.image[pix_id]:.2f} [{self.colorbar_label}]"
+            )
+            selected_waveform_plots = []
+
+            # Create or update a plot that is shown next to the tapped camera display.
+            # This is the right pattern: update an existing placeholder inside the
+            # layout instead of adding a new root at the bottom of the document.
+            if self.waveforms_data:
+                # get average waveform from waveforms_data
+                avg_waveforms_dict = self.waveforms_data["average"]
+                all_waveforms_dict = self.waveforms_data["all"]
+
+                colors_phy = ["blue", "turquoise"]
+                colors_ped = ["red", "orange"]
+
+                for parentkey in avg_waveforms_dict.keys():
+                    colors = colors_phy if "PHY" in parentkey else colors_ped
+
+                    # Find corresponding all_waveforms key by removing -AVERAGE-
+                    all_parentkey = parentkey.replace("-AVERAGE-PIX", "")
+
+                    for childkey in avg_waveforms_dict[parentkey].keys():
+                        all_childkey = childkey.replace("-AVERAGE-PIX", "")
+
+                        samples = np.arange(
+                            len(avg_waveforms_dict[parentkey][childkey])
+                        )
+                        avg_waveform = avg_waveforms_dict[parentkey][childkey]
+
+                        # Determine y-range from average waveform first
+                        y_min = (
+                            np.min(avg_waveform) - np.abs(np.min(avg_waveform)) * 0.1
+                        )
+                        y_max = (
+                            np.max(avg_waveform) + np.abs(np.max(avg_waveform)) * 0.1
+                        )
+
+                        pixel_waveform = all_waveforms_dict[all_parentkey][
+                            all_childkey
+                        ][pix_id]
+                        y_min = min(
+                            y_min,
+                            np.min(pixel_waveform)
+                            - np.abs(np.min(pixel_waveform)) * 0.1,
+                        )
+                        y_max = max(
+                            y_max,
+                            np.max(pixel_waveform)
+                            + np.abs(np.max(pixel_waveform)) * 0.1,
+                        )
+
+                        waveform_plot = figure(
+                            title=all_childkey + f", selected pixel {pix_id}",
+                            x_range=(np.min(samples) - 5, np.max(samples) + 5),
+                            y_range=(y_min, y_max),
+                            width=400,
+                            height=400,
+                        )
+
+                        # Plot average waveform
+                        waveform_plot.line(
+                            x=samples,
+                            y=avg_waveform,
+                            line_width=3,
+                            color=colors[0],
+                            legend_label="Average",
+                        )
+                        waveform_plot.line(
+                            x=samples,
+                            y=pixel_waveform,
+                            line_width=2,
+                            color=colors[1],
+                            legend_label=f"Pixel {pix_id}",
+                        )
+
+                        waveform_plot.xaxis.axis_label = "Waveform sample number"
+
+                        try:
+                            waveform_plot.yaxis.axis_label = y_axis_labels[parentkey]
+                        except ValueError:
+                            waveform_plot.yaxis.axis_label = ""
+                        except KeyError:
+                            waveform_plot.yaxis.axis_label = ""
+
+                        waveform_plot.xaxis.axis_label_text_font_size = "12pt"
+                        waveform_plot.yaxis.axis_label_text_font_size = "12pt"
+                        waveform_plot.xaxis.major_label_text_font_size = "10pt"
+                        waveform_plot.yaxis.major_label_text_font_size = "10pt"
+                        waveform_plot.xaxis.axis_label_text_font_style = "normal"
+                        waveform_plot.yaxis.axis_label_text_font_style = "normal"
+
+                        waveform_plot.outline_line_color = "navy"
+
+                        logger.info(
+                            f"Added {parentkey} and {childkey} "
+                            + f"for {pix_id=}, to the display"
+                        )
+
+                        selected_waveform_plots.append(waveform_plot)
+
+                self.selected_pixel_waveform.children = selected_waveform_plots
+
+            else:
+                avg_waveform = None
+
+            if avg_waveform is None:
+                logger.warning("No waveform data found to add to the display")
+                return
+
+
 # TODO: some more explanation about the parent and child keys
 # may help the user, if needed
-def make_camera_display(source, parent_key, child_key):
+def make_camera_display(
+    camera_displays_data, parent_key, child_key, waveforms_data=None
+):
     """Make camera display plot to fill the nested dict
        created by `make_camera_displays`
        along with the 1D plot of camera pixel values vs pixel id
        and the histograms of pixel values
-=======
-# TODO: understand how to write docs for parent_ and child_ keys
-def make_camera_display(source, parent_key, child_key):
-    """Make camera display plot to fill the nested dict
-       created by `make_camera_displays()`
->>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
 
     Parameters
     ----------
-    source : dict
-<<<<<<< HEAD
-        Dictionary returned by `get_rundata`
-=======
-        Dictionary returned by `get_rundata()`
->>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
+    camera_displays_data : dict
+        Dictionary containing camera display data extracted from source.
+        Each value is a dict with child keys containing 2D image arrays.
+        This should also include BADPIX data which is needed for masking.
     parent_key : str
         Parent key to extract quantity from the dict
     child_key : str
         Child key to extract quantity from the dict
+    waveforms_data : dict, optional
+        Dictionary containing categorized waveform data with 'average' and 'all' keys.
+        Used to display individual pixel waveforms when a pixel is tapped.
+        By default None
 
     Returns
     -------
-<<<<<<< HEAD
     tuple
         Tuple containing:
         - ctapipe.visualization.bokeh.CameraDisplay: CameraDisplay filled with values
@@ -1154,10 +1247,7 @@ def make_camera_display(source, parent_key, child_key):
           control (None for BADPIX displays)
     """
 
-    # TODO: may want to check here to implement
-    # the "on_pixel_clicked" function for pixels
-    # ctapipe.readthedocs.io/en/stable/api/ctapipe.visualization.CameraDisplay.html
-    image = np.nan_to_num(source[parent_key][child_key], nan=0.0)
+    image = np.nan_to_num(camera_displays_data[parent_key][child_key], nan=0.0)
 
     if "BADPIX" in parent_key:
         image = set_bad_pixels_cap_value(image)
@@ -1165,44 +1255,45 @@ def make_camera_display(source, parent_key, child_key):
         min_slider, max_slider = 0.0, 1.0
     else:
         mask_high_gain, mask_low_gain = get_bad_pixels_position(
-            source=source, image_shape=image.shape
+            camera_displays_data=camera_displays_data, image_shape=image.shape
         )
-        # plotting by default range with 99.5% of all events, so that
-        # outliers do not prevent us from seing the bulk of the data
-        min_colorbar = np.nanquantile(
-            image[~mask_low_gain if "LOW-GAIN" in parent_key else ~mask_high_gain],
-            0.005,
-        )
-        max_colorbar = np.nanquantile(
-            image[~mask_low_gain if "LOW-GAIN" in parent_key else ~mask_high_gain],
-            0.995,
-        )
-        min_slider = np.min(
-            image[~mask_low_gain if "LOW-GAIN" in parent_key else ~mask_high_gain]
-        )
-        max_slider = np.max(
-            image[~mask_low_gain if "LOW-GAIN" in parent_key else ~mask_high_gain]
-        )
-        if max_colorbar == min_colorbar:
-            # avoid problems with bokeh display
-            max_colorbar *= 1.05
-            min_colorbar *= 0.95
-        if max_slider == min_slider:
-            # avoid problems with the slider definition
-            max_slider *= 1.05
-            min_slider *= 0.95
-        image[mask_low_gain if "LOW-GAIN" in parent_key else mask_high_gain] = 0.0
+        if "PING-PONG" not in parent_key:
+            # plotting by default range with 99.5% of all events, so that
+            # outliers do not prevent us from seing the bulk of the data
+            min_colorbar = np.nanquantile(
+                image[~mask_low_gain if "LOW-GAIN" in parent_key else ~mask_high_gain],
+                0.005,
+            )
+            max_colorbar = np.nanquantile(
+                image[~mask_low_gain if "LOW-GAIN" in parent_key else ~mask_high_gain],
+                0.995,
+            )
+            min_slider = np.min(
+                image[~mask_low_gain if "LOW-GAIN" in parent_key else ~mask_high_gain]
+            )
+            max_slider = np.max(
+                image[~mask_low_gain if "LOW-GAIN" in parent_key else ~mask_high_gain]
+            )
+            if max_colorbar == min_colorbar:
+                # avoid problems with bokeh display
+                max_colorbar *= 1.05
+                min_colorbar *= 0.95
+            if max_slider == min_slider:
+                # avoid problems with the slider definition
+                max_slider *= 1.05
+                min_slider *= 0.95
+            image[mask_low_gain if "LOW-GAIN" in parent_key else mask_high_gain] = 0.0
+        else:
+            min_colorbar, max_colorbar = 0, np.max(image)
+            if max_colorbar == min_colorbar:
+                max_colorbar = 1.0
+            min_slider, max_slider = 0, np.max(image)
+            if max_slider == min_slider:
+                max_slider = 1.0
+            image[mask_low_gain] = 0.0
 
-=======
-    ctapipe.visualization.bokeh.CameraDisplay
-        CameraDisplay filled with values for the selected quantity,
-        and displayed with the geometry from ctapipe.instrument.CameraGeometry
-    """
-
-    image = source[parent_key][child_key]
-    image = np.nan_to_num(image, nan=0.0)
->>>>>>> 2018923 (docs(src/nectarchain/dqm/bokeh_app/main.py): add docstrings to functions in the Bokeh app)
-    display = CameraDisplay(geometry=geom)
+    # display = CameraDisplay(geometry=geom)
+    display = CameraDisplayNectarCAM(geom)
     try:
         display.image = image
     except ValueError as e:
@@ -1253,15 +1344,27 @@ def make_camera_display(source, parent_key, child_key):
 
     try:
         color_bar.title = colorbar_labels[parent_key]
+        display.colorbar_label = colorbar_labels[parent_key]
     except ValueError:
         color_bar.title = ""
+        display.colorbar_label = ""
     except KeyError:
         color_bar.title = ""
+        display.colorbar_label = ""
 
     display.figure.title = child_key
+    display.figure_title = child_key
+    display.selected_pixel_waveform = row(sizing_mode="scale_width")
+    display.selected_pixel_waveform_plots = []
+    display.camera_displays_data = camera_displays_data
+    display.parent_key = parent_key
+    display.child_key = child_key
+    display.waveforms_data = waveforms_data
+
+    display.enable_pixel_picker(display.pixel_picker_callback)
 
     # Create RangeSlider for dynamic color range control
-    range_slider = define_dymanic_color_range(
+    range_slider = define_dynamic_color_range(
         parent_key=parent_key,
         display=display,
         min_max_slider=(min_slider, max_slider),
@@ -1295,14 +1398,16 @@ def set_bad_pixels_cap_value(image):
     return image
 
 
-def get_bad_pixels_position(source, image_shape):
+def get_bad_pixels_position(camera_displays_data, image_shape):
     """Get the positions of the bad pixels
        in the camera as boolean masks
 
     Parameters
     ----------
-    source : dict
-        Dictionary returned by `get_rundata`
+    camera_displays_data : dict
+        Dictionary containing camera display data extracted from source.
+        Each value is a dict with child keys containing 2D image arrays.
+        This should also include BADPIX data which is needed for masking.
     image_shape : tuple
         Shape of the display image
         for the quantity called in `make_camera_display`
@@ -1318,20 +1423,20 @@ def get_bad_pixels_position(source, image_shape):
     """
 
     try:
-        if "CAMERA-BADPIX-PED-PHY-OVEREVENTS-HIGH-GAIN" in source.keys():
-            image_badpix_high_gain = source[
+        if "CAMERA-BADPIX-PED-PHY-OVEREVENTS-HIGH-GAIN" in camera_displays_data.keys():
+            image_badpix_high_gain = camera_displays_data[
                 "CAMERA-BADPIX-PED-PHY-OVEREVENTS-HIGH-GAIN"
             ]["CAMERA-BadPix-PED-PHY-OverEVENTS-HIGH-GAIN"]
-            image_badpix_low_gain = source[
+            image_badpix_low_gain = camera_displays_data[
                 "CAMERA-BADPIX-PED-PHY-OVEREVENTS-HIGH-GAIN"
             ]["CAMERA-BadPix-PED-PHY-OverEVENTS-HIGH-GAIN"]
-        elif "CAMERA-BADPIX-PHY-OVEREVENTS-HIGH-GAIN" in source.keys():
-            image_badpix_high_gain = source["CAMERA-BADPIX-PHY-OVEREVENTS-HIGH-GAIN"][
-                "CAMERA-BadPix-PHY-OverEVENTS-HIGH-GAIN"
-            ]
-            image_badpix_low_gain = source["CAMERA-BADPIX-PHY-OVEREVENTS-HIGH-GAIN"][
-                "CAMERA-BadPix-PHY-OverEVENTS-HIGH-GAIN"
-            ]
+        elif "CAMERA-BADPIX-PHY-OVEREVENTS-HIGH-GAIN" in camera_displays_data.keys():
+            image_badpix_high_gain = camera_displays_data[
+                "CAMERA-BADPIX-PHY-OVEREVENTS-HIGH-GAIN"
+            ]["CAMERA-BadPix-PHY-OverEVENTS-HIGH-GAIN"]
+            image_badpix_low_gain = camera_displays_data[
+                "CAMERA-BADPIX-PHY-OVEREVENTS-HIGH-GAIN"
+            ]["CAMERA-BadPix-PHY-OverEVENTS-HIGH-GAIN"]
 
         mask_bad_pixels_high_gain = image_badpix_high_gain >= 1.0
         # FIXME: bad pixels for High and Low gain may be the same
