@@ -251,6 +251,7 @@ def main():
         pedestal_tool = PedestalNectarCAMCalibrationTool(
             progress_bar=True,
             run_number=run,
+            camera=camera,
             max_events=nevents,
             events_per_slice=None,
             log_level=20,
@@ -263,6 +264,7 @@ def main():
         tool = LaserIntensityCalibrationTool(
             progress_bar=True,
             run_number=run,
+            camera=camera,
             events_per_slice=999,
             max_events=nevents,
             log_level=20,
