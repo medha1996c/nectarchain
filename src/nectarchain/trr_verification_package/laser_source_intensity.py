@@ -241,7 +241,7 @@ def main():
     std_err = np.zeros((len(runlist), 2))
     ratio_hglg = np.zeros(len(runlist))
 
-    log.debug("runlist ==", runlist)
+    log.debug(f"Input runlist: {runlist}")
 
     for index, run in enumerate(runlist):
         log.info(f"Processing run {run}")
