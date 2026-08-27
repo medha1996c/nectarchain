@@ -23,7 +23,7 @@ from nectarchain.trr_verification_package.utils import (
     get_bad_pixels_list,
     linear_fit_function,
 )
-from nectarchain.utils.constants import ALLOWED_CAMERAS, GAIN_DEFAULT
+from nectarchain.utils.constants import ALLOWED_CAMERAS, ENF, GAIN_DEFAULT
 
 logging.basicConfig(
     format="%(asctime)s %(name)s %(levelname)s %(message)s",
