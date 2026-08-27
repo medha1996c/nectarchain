@@ -158,7 +158,7 @@ class LaserIntensityCalibrationTool(EventsLoopNectarCAMCalibrationTool):
     componentsList = ComponentNameList(
         NectarCAMComponent,
         default_value=["ChargesComponent"],
-        help="List of Component names to be apply, the order will be respected",
+        help="List of Component names to be applied, the order will be respected",
     ).tag(config=True)
 
     def finish(self, *args, **kwargs):
