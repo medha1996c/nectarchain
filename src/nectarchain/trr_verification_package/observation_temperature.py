@@ -1,5 +1,4 @@
 import argparse
-import gc
 import logging
 import os
 import sys
@@ -167,7 +166,6 @@ class ObservationTemperaturePipeline:
 
         temperatures = sorted(df_module_filtered["temperature"].unique())
 
-        # print(temperatures)
         outputs_comb = []
 
         for t in temperatures:
@@ -273,7 +271,6 @@ class ObservationTemperaturePipeline:
         plot_path = os.path.join(self.output_dir, f"{fig_name}.png")
         plt.savefig(plot_path)
 
-        plt.clf()
         slope = []
         intercept = []
         slope_err = []
@@ -321,8 +318,6 @@ class ObservationTemperaturePipeline:
         plot_path = os.path.join(self.output_dir, f"{fig_name}.png")
         plt.savefig(plot_path)
 
-        plt.clf()
-        gc.collect()
         fig, ax1 = plt.subplots()
 
         color = "tab:red"
@@ -544,7 +539,6 @@ class ObservationTemperaturePipeline:
         slope_hglg = []
 
         df_lin = df_lin.explode(["transmission", "ratio", "ratio_std"])
-        plt.clf()
 
         for transmission in sorted(df_lin["transmission"].unique()):
             df_lin_transmission = df_lin[
