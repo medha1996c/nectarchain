@@ -36,10 +36,6 @@ try:
 except FileNotFoundError as e:
     raise e
 
-# TODO: this may or may not be used if we want to save plots at the path
-# NECTARCHAIN_FIGURES/trr_camera_X/observation_temperature/
-figures_output_path = os.environ.get("NECTARCHAIN_FIGURES", "./")
-
 
 def get_args():
     """Parses command-line arguments for the linearity test script.
