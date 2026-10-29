@@ -458,11 +458,10 @@ def run_linearity(
     )
 
     plt.savefig(os.path.join(output_dir, f"linearity_test_T{temperature}.png"))
-    """
+
     if temp_output:
-        with open(os.path.join(args.temp_output, "plot1.pkl"), "wb") as f:
+        with open(os.path.join(temp_output_args, "plot1.pkl"), "wb") as f:
             pickle.dump(fig, f)
-    """
 
     # charge resolution
     charge_hg = charge[:, 0]
