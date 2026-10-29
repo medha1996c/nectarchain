@@ -456,11 +456,12 @@ def run_linearity(
         color="k",
         alpha=0.9,
     )
-
-    plt.savefig(os.path.join(output_dir, f"linearity_test_T{temperature}.png"))
+    fig_name = f"linearity_test_T{temperature}"
+    plot_path = os.path.join(output_dir, f"{fig_name}.png")
+    plt.savefig(plot_path)
 
     if temp_output:
-        with open(os.path.join(temp_output_args, "plot1.pkl"), "wb") as f:
+        with open(os.path.join(temp_output_args, f"plot_{fig_name}.pkl"), "wb") as f:
             pickle.dump(fig, f)
 
     # charge resolution
@@ -521,9 +522,12 @@ def run_linearity(
 
     plt.xlim(3e-2, 4e3)
     plt.legend(frameon=False)
-    plt.savefig(os.path.join(output_dir, "charge_resolution.png"))
+    fig_name = "charge_resolution"
+    plot_path = os.path.join(output_dir, f"{fig_name}.png")
+    plt.savefig(plot_path)
+
     if temp_output:
-        with open(os.path.join(temp_output_args, "plot2.pkl"), "wb") as f:
+        with open(os.path.join(temp_output_args, f"plot_{fig_name}.pkl"), "wb") as f:
             pickle.dump(fig, f)
     plt.close("all")
 
