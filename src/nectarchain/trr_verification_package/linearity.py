@@ -100,7 +100,7 @@ def get_args():
         "-o",
         "--output",
         type=str,
-        help="Output directory. If none, plot will be saved in current directory",
+        help="Output directory.",
         required=False,
         default=f"{os.environ.get('NECTARCHAIN_FIGURES', f'/tmp/{os.getpid()}')}",
     )
