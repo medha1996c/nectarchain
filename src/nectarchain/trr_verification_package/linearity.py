@@ -102,7 +102,7 @@ def get_args():
         type=str,
         help="Output directory. If none, plot will be saved in current directory",
         required=False,
-        default="./",
+        default=f"{os.environ.get('NECTARCHAIN_FIGURES', f'/tmp/{os.getpid()}')}",
     )
     parser.add_argument(
         "--temp_output", help="Temporary output directory for GUI", default=None
@@ -153,7 +153,7 @@ def main():
     )
 
     log.info(f"Output directory: {output_dir}")  # Debug print
-    # print(f"Temporary output file: {temp_output}")  # Debug print
+    # log.info(f"Temporary output file: {args.temp_output}")  # Debug print
 
     sys.argv = sys.argv[:1]
 
@@ -162,6 +162,7 @@ def main():
         runlist=runlist,
         transmission=transmission,
         temperature=temperature,
+        camera=camera,
         nevents=nevents,
         output_dir=output_dir,
         temp_output_args=args.temp_output,
@@ -172,6 +173,7 @@ def run_linearity(
     runlist,
     transmission,
     temperature=14,
+    camera="NectarCAMQM",
     nevents=500,
     output_dir="./",
     temp_output_args=None,
@@ -184,11 +186,12 @@ def run_linearity(
 
     index = 0
     for run in runlist:
-        print("PROCESSING RUN {}".format(run))
+        log.info("PROCESSING RUN {}".format(run))
         pedestal_tool = PedestalNectarCAMCalibrationTool(
             progress_bar=True,
             run_number=run,
             max_events=nevents,
+            camera=camera,
             events_per_slice=5000,
             log_level=20,
             output_path=output_dir + f"/pedestal_{run}.h5",
@@ -202,6 +205,7 @@ def run_linearity(
             run_number=run,
             events_per_slice=5000,
             max_events=nevents,
+            camera=camera,
             log_level=20,
             method="LocalPeakWindowSum",
             extractor_kwargs={"window_width": 16, "window_shift": 4},
@@ -216,19 +220,17 @@ def run_linearity(
         charge[index], std[index], std_err[index], npixels = output
         index += 1
 
-    # print("FINAL",charge)
-
     # we assume that they overlap at 0.01 so they should have the same value
     # normalise high gain and low gain using charge value at 0.01
     transmission = np.array(transmission)
     norm_factor_hg = charge[
         np.argwhere((transmission < 1.1e-2) & (transmission > 9e-3)), 0
     ][0]
-    # print(norm_factor_hg)
+
     norm_factor_lg = charge[
         np.argwhere((transmission < 1.1e-2) & (transmission > 9e-3)), 1
     ][0]
-    # print(norm_factor_lg)
+
     charge_norm_hg = charge[:, 0] / norm_factor_hg
     charge_norm_lg = charge[:, 1] / norm_factor_lg
     std_norm_hg = std[:, 0] / norm_factor_hg
@@ -276,7 +278,6 @@ def run_linearity(
         )  # sort by true charge
 
         ch_sorted = np.array(sorted(yx))
-        # print(ch_sorted)
 
         # linearity
         model = Model(linear_fit_function)
@@ -302,7 +303,7 @@ def run_linearity(
 
         ch_fit = model.fit(ch_charge_inp, params, x=true_inp, weights=1.0 / ch_err_inp)
 
-        # print(ch_fit.fit_report())
+        log.debug(ch_fit.fit_report())
 
         a = ch_fit.params["a"].value
         b = ch_fit.params["b"].value
@@ -320,7 +321,6 @@ def run_linearity(
             color=plot_parameters[name]["color"],
         )
 
-        # print("after fit : ",true_inp, a*true_inp + b)
         axs[0].plot(
             true_inp,
             linear_fit_function(true_inp, a, b),
@@ -412,15 +412,14 @@ def run_linearity(
         weights=1 / ratio_std[mask_linear],
         x=true[mask_linear],
     )
-    """
-    print(
+
+    log.debug(
         "true === ",
         true[mask_linear],
         linear_fit_function(
             true[mask_linear], ratio_fit.params["a"].value, ratio_fit.params["b"].value
         ),
     )
-    """
 
     axs[2].plot(
         true[mask_linear],
